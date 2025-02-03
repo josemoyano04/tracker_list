@@ -1,10 +1,11 @@
 from datetime import datetime
 from models.status_task import status_task
+from services.id_manager import IDManager 
 
 class Task:
     
-    def __init__(self, id: int, description: str, status: status_task):
-        self.id = id
+    def __init__(self, description: str, status: status_task):
+        self.id = IDManager().assign_id()
         self.description = description
         self.status = status
         self.created_at = datetime.now().strftime("%Y-%m-%d %H:%M")

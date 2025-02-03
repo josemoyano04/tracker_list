@@ -1,5 +1,6 @@
 import os
 import json
+import config as c
 from models.task import Task
 from errors.task_not_exists_error import TaskNotExistsError
 
@@ -14,10 +15,9 @@ class StorageManager:
     def __init__(self):
         if not hasattr(self, "__initialized"):
             self.__initialized = True 
-            self._storage_exists = False
-            self._create_storage() #Creacion de almacenamiento y seteo de _storage_exists
-    #Config
-    __storage_name = "task_storage.json"
+            self._storage_exists = os.path.exists(c.STORAGE_PATH)
+            if not self._storage_exists:
+                self._create_storage() #Creacion de almacenamiento y seteo de _storage_exists
 
     
     #Methods
@@ -30,12 +30,12 @@ class StorageManager:
         
         
         #Lectura de json.
-        with open(self.__storage_name, "r") as storage:
+        with open(c.STORAGE_PATH, "r") as storage:
             st = json.load(storage)
             st[task.id] = task.to_dict()
         
         #Guardado de json.   
-        with open(self.__storage_name, "w") as storage:
+        with open(c.STORAGE_PATH, "w") as storage:
             json.dump(st, storage, indent= 4)
         
     def update_task(self, task_id: int, updated_task: Task):
@@ -53,7 +53,7 @@ class StorageManager:
         
         
         #Lectura y modificación de json:
-        with open(self.__storage_name, "r") as storage:
+        with open(c.STORAGE_PATH, "r") as storage:
             #Lectura
             st = json.load(storage)
             #Modificacion
@@ -61,7 +61,7 @@ class StorageManager:
             st[task_id] = updated_task.to_dict() #Sobreescritura de tarea en json.
         
         #Guardado de json
-        with open(self.__storage_name, "w") as storage:
+        with open(c.STORAGE_PATH, "w") as storage:
             json.dump(st, storage, indent= 4)
     
     def delete_task(self, task_id: int):
@@ -76,12 +76,12 @@ class StorageManager:
         
         
         #Lectura y eliminación:
-        with open(self.__storage_name, "r") as storage:
+        with open(c.STORAGE_PATH, "r") as storage:
             st = json.load(storage)
             del st[task_id]
         
         #Guardado de cambios:
-        with open(self.__storage_name, "w") as storage:
+        with open(c.STORAGE_PATH, "w") as storage:
             json.dump(st, storage, indent= 4)
 
     #Aux methods
@@ -89,7 +89,7 @@ class StorageManager:
         self._validate_id(task_id) #Lanza TypeError si no es entero o ValueError si es negativo.
         
         #Lectura de json:
-        with open(self.__storage_name, "r") as storage:
+        with open(c.STORAGE_PATH, "r") as storage:
             st = json.load(storage)
             
             try:
@@ -100,8 +100,8 @@ class StorageManager:
                 return False
     
     def _create_storage(self) ->  None:
-        if not os.path.exists(path= self.__storage_name):
-            with open(self.__storage_name, "w") as storage:
+        if not os.path.exists(c.STORAGE_PATH):
+            with open(c.STORAGE_PATH, "w") as storage:
                 json.dump({}, storage)
                 self._storage_exists = True
         
