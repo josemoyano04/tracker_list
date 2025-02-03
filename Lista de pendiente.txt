@@ -1,9 +1,0 @@
-Crear directorio. OK
-crear entorno de desarrollo virtual. OK
-inicializar git. OK
-enlazar a GitHub.
-crear modelo "task".
-implementar almacenamiento en json.
-implementar métodos cli.
-pruebas y depuración.
-proyecto finalizado.
