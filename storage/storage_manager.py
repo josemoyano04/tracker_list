@@ -1,6 +1,7 @@
 import os
 import json
 import config as c
+from typing import List
 from models.task import Task
 from errors.task_not_exists_error import TaskNotExistsError
 
@@ -32,12 +33,44 @@ class StorageManager:
         #Lectura de json.
         with open(c.STORAGE_PATH, "r") as storage:
             st = json.load(storage)
-            st[task.id] = task.to_dict()
+            st[str(task.id)] = task.to_dict()
         
         #Guardado de json.   
         with open(c.STORAGE_PATH, "w") as storage:
             json.dump(st, storage, indent= 4)
+      
+    def get_task_for_id(self, task_id: int) -> Task: 
+        #Validaciones
+        if not self._storage_exists: #Validacion de almacenamiento existente.
+            raise FileNotFoundError("Error, storage file does not exist.")
         
+        self._validate_id(task_id) #Validacion de id.
+        
+        if not self._task_exists(task_id): #Validacion de existencia de tarea.
+            raise TaskNotExistsError("Id does not correspond to an existing task.")
+        
+        #Lectura y obtencion de tarea:
+        with open(c.STORAGE_PATH, "r") as storage:
+            st = json.load(storage)
+            task = st[str(task_id)]
+            return Task.dict_to_task(task)
+      
+    def get_tasks_for_status(self, status: str) -> List[Task]: 
+        #Validaciones
+        if not self._storage_exists: #Validacion de almacenamiento existente.
+            raise FileNotFoundError("Error, storage file does not exist.")
+      
+        #Lectura y obtencion de tarea:
+        with open(c.STORAGE_PATH, "r") as storage:
+            st: dict = json.load(storage)
+            tasks = []
+            for task in st.values():
+                if task["status"] == status:
+                    tasks.append(Task.dict_to_task(task))
+                    
+            return tasks #Devolucion de tareas filtradas.
+            
+            
     def update_task(self, task_id: int, updated_task: Task):
         #Validaciones
         if not self._storage_exists: #Validacion de almacenamiento existente.
@@ -58,7 +91,8 @@ class StorageManager:
             st = json.load(storage)
             #Modificacion
             updated_task.id = task_id #Reasignacion de id
-            st[task_id] = updated_task.to_dict() #Sobreescritura de tarea en json.
+            updated_task.set_update_at() #Actualizacion de fecha de ultimo update.
+            st[str(task_id)] = updated_task.to_dict() #Sobreescritura de tarea en json.
         
         #Guardado de json
         with open(c.STORAGE_PATH, "w") as storage:
@@ -78,7 +112,7 @@ class StorageManager:
         #Lectura y eliminación:
         with open(c.STORAGE_PATH, "r") as storage:
             st = json.load(storage)
-            del st[task_id]
+            del st[str(task_id)]
         
         #Guardado de cambios:
         with open(c.STORAGE_PATH, "w") as storage:
@@ -91,13 +125,7 @@ class StorageManager:
         #Lectura de json:
         with open(c.STORAGE_PATH, "r") as storage:
             st = json.load(storage)
-            
-            try:
-                task = st[task_id]
-                if task is not None:
-                    return True
-            except KeyError:
-                return False
+            return str(task_id) in st
     
     def _create_storage(self) ->  None:
         if not os.path.exists(c.STORAGE_PATH):
@@ -106,7 +134,9 @@ class StorageManager:
                 self._storage_exists = True
         
     def _validate_id(self, id: int) -> None:
-        if not isinstance(id, int): #Validacion de tipo.
+        try:
+            id = int(id)  # Intentar convertir a entero
+        except ValueError:
             raise TypeError("ID is not integer.")
             
         if id <= 0: #Validacion de numero positivo.

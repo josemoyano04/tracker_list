@@ -33,3 +33,14 @@ class IDManager():
     def _create_id_counter(self) -> None:
         with open(c.ID_COUNTER_PATH, "w") as id_counter:
             json.dump({"counter": 1}, id_counter, indent=4)
+     
+    @classmethod       
+    def validate_id_counter(cls) -> None:
+        if not os.path.exists(c.STORAGE_PATH):
+            with open(c.ID_COUNTER_PATH, "r") as id_counter:
+                counter = json.load(id_counter)
+                counter["counter"] = 1
+            
+            #Guardado de cambios:
+            with open(c.ID_COUNTER_PATH, "w") as id_counter:
+                json.dump(counter, id_counter, indent= 4)
