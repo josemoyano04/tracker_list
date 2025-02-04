@@ -39,12 +39,10 @@ class Task:
         
     #Reassigned methods
     def __str__(self):
-        string = f"""*****************************
-task id: {self.id}
+        string = f"""id: {self.id}
 description: {self.description}
 status: {self.status}
 created at: {self.created_at}
 updated at: {self.updated_at}
-*****************************
-"""
+*****************************"""
         return string

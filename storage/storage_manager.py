@@ -69,8 +69,17 @@ class StorageManager:
                     tasks.append(Task.dict_to_task(task))
                     
             return tasks #Devolucion de tareas filtradas.
-            
-            
+    
+    def get_all_task(self) -> List[Task]:
+        #Validaciones:
+        if not self._storage_exists:
+            raise FileNotFoundError("Error, storage file does not exist.")
+        
+        #Lectura y obtención de datos:
+        with open(c.STORAGE_PATH, "r") as storage:
+            st = json.load(storage)    
+            return [Task.dict_to_task(task) for task in st.values()]
+          
     def update_task(self, task_id: int, updated_task: Task):
         #Validaciones
         if not self._storage_exists: #Validacion de almacenamiento existente.
